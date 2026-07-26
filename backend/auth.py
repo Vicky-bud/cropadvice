@@ -1,20 +1,22 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import jwt, JWTError
+import os
 
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import os
+from supabase import create_client, Client
+
 import database, models
 
-SECRET_KEY = os.getenv("SECRET_KEY", "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://zmcbohkeamxrmcwbnyay.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_xe6nd1yK8BLoPpvh7Y5AqQ_p9_YEDG7")
 
-import bcrypt
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("WARNING: Supabase URL or Key not set. Authentication will fail.")
 
-# We no longer use passlib because of a bug with bcrypt>4.0
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -43,13 +45,34 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        res = supabase.auth.get_user(token)
+        if not res or not res.user:
             raise credentials_exception
-    except JWTError:
+        user_data = res.user
+        email = user_data.email
+        full_name = user_data.user_metadata.get("full_name", "") if user_data.user_metadata else ""
+    except Exception as e:
         raise credentials_exception
+
+    if email is None:
+        raise credentials_exception
+        
     user = db.query(models.User).filter(models.User.email == email).first()
+    
+    # Just-In-Time Provisioning
     if user is None:
-        raise credentials_exception
+        user = models.User(
+            email=email,
+            hashed_password="SUPABASE_AUTH_DUMMY",
+            full_name=full_name
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+        # Initialize an empty profile for the new user
+        new_profile = models.FarmerProfile(user_id=user.id)
+        db.add(new_profile)
+        db.commit()
+        
     return user

@@ -49,12 +49,10 @@ export default function CropRecommendation() {
     setResults(null)
 
     try {
-      const token = localStorage.getItem("token")
       const response = await apiFetch("/api/ml/predict-crop", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(data),
       })

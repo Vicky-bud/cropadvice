@@ -15,7 +15,9 @@ export default function DashboardOverview() {
   const [editForm, setEditForm] = useState({
     farm_size_acres: '',
     primary_soil_type: '',
-    location: ''
+    location: '',
+    latitude: null as number | null,
+    longitude: null as number | null
   })
   const [savingProfile, setSavingProfile] = useState(false)
   const [locating, setLocating] = useState(false)
@@ -24,7 +26,9 @@ export default function DashboardOverview() {
     setEditForm({
       farm_size_acres: profile?.farm_size_acres || '',
       primary_soil_type: profile?.primary_soil_type || '',
-      location: profile?.location || ''
+      location: profile?.location || '',
+      latitude: profile?.latitude || null,
+      longitude: profile?.longitude || null
     })
     setIsEditing(true)
   }
@@ -40,12 +44,17 @@ export default function DashboardOverview() {
           const city = data.address.city || data.address.town || data.address.village || data.address.county
           const state = data.address.state
           if (city && state) {
-            setEditForm(prev => ({ ...prev, location: `${city}, ${state}` }))
+            setEditForm(prev => ({ ...prev, location: `${city}, ${state}`, latitude, longitude }))
           } else if (data.display_name) {
-            setEditForm(prev => ({ ...prev, location: data.display_name.split(",").slice(0, 2).join(", ") }))
+            setEditForm(prev => ({ ...prev, location: data.display_name.split(",").slice(0, 2).join(", "), latitude, longitude }))
+          } else {
+            setEditForm(prev => ({ ...prev, latitude, longitude }))
           }
         } catch (e) {
           console.error("Geocoding failed", e)
+          // Still save coordinates even if reverse geocoding fails
+          const { latitude, longitude } = position.coords
+          setEditForm(prev => ({ ...prev, latitude, longitude }))
         } finally {
           setLocating(false)
         }
@@ -63,17 +72,17 @@ export default function DashboardOverview() {
   const handleSaveProfile = async () => {
     setSavingProfile(true)
     try {
-      const token = localStorage.getItem("token")
       const res = await apiFetch("/api/profile/", {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
           farm_size_acres: editForm.farm_size_acres ? parseFloat(editForm.farm_size_acres) : null,
           primary_soil_type: editForm.primary_soil_type || null,
-          location: editForm.location || null
+          location: editForm.location || null,
+          latitude: editForm.latitude,
+          longitude: editForm.longitude
         })
       })
       if (res.ok) {
@@ -84,9 +93,7 @@ export default function DashboardOverview() {
         // Refetch Weather based on new profile location
         setLoadingWeather(true)
         try {
-          const wRes = await apiFetch("/api/weather/", {
-            headers: { "Authorization": `Bearer ${token}` }
-          })
+          const wRes = await apiFetch("/api/weather/")
           if (wRes.ok) setWeather(await wRes.json())
         } catch (e) {
           console.error("Failed to fetch weather after profile update", e)
@@ -103,13 +110,9 @@ export default function DashboardOverview() {
 
   useEffect(() => {
     async function fetchDashboardData() {
-      const token = localStorage.getItem("token")
-      
       // Fetch Weather
       try {
-        const wRes = await apiFetch("/api/weather/", {
-          headers: { "Authorization": `Bearer ${token}` }
-        })
+        const wRes = await apiFetch("/api/weather/")
         if (wRes.ok) setWeather(await wRes.json())
       } catch (e) {
         console.error("Failed to fetch weather", e)
@@ -119,9 +122,7 @@ export default function DashboardOverview() {
       
       // Fetch History
       try {
-        const hRes = await apiFetch("/api/profile/activity", {
-          headers: { "Authorization": `Bearer ${token}` }
-        })
+        const hRes = await apiFetch("/api/profile/activity")
         if (hRes.ok) setHistory(await hRes.json())
       } catch (e) {
         console.error("Failed to fetch history", e)
@@ -131,9 +132,7 @@ export default function DashboardOverview() {
       
       // Fetch Profile
       try {
-        const pRes = await apiFetch("/api/profile/", {
-          headers: { "Authorization": `Bearer ${token}` }
-        })
+        const pRes = await apiFetch("/api/profile/")
         if (pRes.ok) setProfile(await pRes.json())
       } catch (e) {
         console.error("Failed to fetch profile", e)

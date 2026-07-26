@@ -2,10 +2,24 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../ui/button'
 import { Leaf } from 'lucide-react'
 import { ModeToggle } from '../ModeToggle'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export default function Navbar() {
-  const token = localStorage.getItem('token')
   const navigate = useNavigate()
+  const [session, setSession] = useState<any>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md dark:bg-neutral-950/80">
@@ -23,7 +37,7 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-4">
           <ModeToggle />
-          {token ? (
+          {session ? (
             <Button onClick={() => navigate('/dashboard')} className="bg-green-600 hover:bg-green-700 text-white">
               Go to Dashboard
             </Button>

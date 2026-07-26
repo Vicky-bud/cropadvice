@@ -26,10 +26,7 @@ export default function AIAssistant() {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const token = localStorage.getItem("token")
-        const res = await apiFetch("/api/ml/chat/history", {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const res = await apiFetch("/api/ml/chat/history")
         if (res.ok) {
           const data = await res.json()
           if (data.length > 0) {
@@ -51,10 +48,8 @@ export default function AIAssistant() {
     if (!confirm("Are you sure you want to clear your chat history?")) return
     
     try {
-      const token = localStorage.getItem("token")
       const res = await apiFetch("/api/ml/chat/history", {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        method: "DELETE"
       })
       if (res.ok) {
         setMessages([
@@ -83,12 +78,10 @@ export default function AIAssistant() {
     setIsLoading(true)
 
     try {
-      const token = localStorage.getItem("token")
       const response = await apiFetch("/api/ml/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           message: userMsg.content,

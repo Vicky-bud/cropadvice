@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Enum, Float
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime
@@ -30,6 +30,8 @@ class FarmerProfile(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
     location = Column(String, nullable=True) # E.g., City, State
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     farm_size_acres = Column(Integer, nullable=True)
     primary_soil_type = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)

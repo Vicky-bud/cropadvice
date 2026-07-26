@@ -74,12 +74,8 @@ export default function DiseaseDetection() {
     formData.append("file", file)
 
     try {
-      const token = localStorage.getItem("token")
       const response = await apiFetch("/api/ml/predict-disease", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
         body: formData,
       })
 

@@ -31,20 +31,26 @@ def fetch_weather(lat: float, lon: float):
 @router.get("/")
 def get_weather(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     profile = db.query(models.FarmerProfile).filter(models.FarmerProfile.user_id == current_user.id).first()
-    if not profile or not profile.location:
-        return {"temp": 25, "humidity": 60, "windSpeed": 12, "condition": "Unknown"}
     
-    lat, lon = 20.5937, 78.9629 # default India
-    try:
-        geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={profile.location}&count=1"
-        res = requests.get(geo_url)
-        if res.status_code == 200:
-            data = res.json()
-            if "results" in data and len(data["results"]) > 0:
-                lat = data["results"][0]["latitude"]
-                lon = data["results"][0]["longitude"]
-    except Exception as e:
-        logging.error(f"Geocoding failed: {e}")
+    # Default to center of India if completely missing
+    lat, lon = 20.5937, 78.9629
+    
+    if profile:
+        if profile.latitude and profile.longitude:
+            # Exact coordinates provided by profile!
+            lat, lon = profile.latitude, profile.longitude
+        elif profile.location:
+            # Fallback to reverse geocoding if only location string is provided
+            try:
+                geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={profile.location}&count=1"
+                res = requests.get(geo_url)
+                if res.status_code == 200:
+                    data = res.json()
+                    if "results" in data and len(data["results"]) > 0:
+                        lat = data["results"][0]["latitude"]
+                        lon = data["results"][0]["longitude"]
+            except Exception as e:
+                logging.error(f"Geocoding failed: {e}")
 
     return fetch_weather(lat, lon)
 

@@ -18,6 +18,8 @@ class UserUpdate(BaseModel):
 
 class FarmerProfileBase(BaseModel):
     location: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     farm_size_acres: Optional[int] = None
     primary_soil_type: Optional[str] = None
     phone_number: Optional[str] = None

@@ -20,3 +20,4 @@ requests
 Pillow
 tensorflow-cpu
 google-generativeai
+supabase
