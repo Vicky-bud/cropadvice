@@ -1,0 +1,22 @@
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+alembic
+psycopg2-binary
+python-dotenv
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+# Machine Learning
+scikit-learn
+pandas
+numpy
+xgboost
+lightgbm
+shap
+# Integrations
+requests
+Pillow
+tensorflow-cpu
+google-generativeai
