@@ -3,6 +3,7 @@ import { LayoutDashboard, Sprout, ShieldAlert, Bot, LogOut, Menu } from "lucide-
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { ModeToggle } from "../ModeToggle"
+import { supabase } from "@/lib/supabase"
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -16,8 +17,8 @@ export default function DashboardLayout() {
   const navigate = useNavigate()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-  const handleLogout = () => {
-    localStorage.removeItem("token")
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     navigate("/login")
   }
 
