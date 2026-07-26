@@ -61,18 +61,23 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     
     # Just-In-Time Provisioning
     if user is None:
-        user = models.User(
-            email=email,
-            hashed_password="SUPABASE_AUTH_DUMMY",
-            full_name=full_name
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        
-        # Initialize an empty profile for the new user
-        new_profile = models.FarmerProfile(user_id=user.id)
-        db.add(new_profile)
-        db.commit()
+        try:
+            user = models.User(
+                email=email,
+                hashed_password="SUPABASE_AUTH_DUMMY",
+                full_name=full_name
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            
+            # Initialize an empty profile for the new user
+            new_profile = models.FarmerProfile(user_id=user.id)
+            db.add(new_profile)
+            db.commit()
+        except Exception:
+            db.rollback()
+            # If it fails, it means another concurrent thread already created the user.
+            user = db.query(models.User).filter(models.User.email == email).first()
         
     return user
