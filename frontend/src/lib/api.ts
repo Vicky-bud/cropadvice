@@ -21,6 +21,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   if (response.status === 401) {
     if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      await supabase.auth.signOut()
       window.location.href = "/login"
     }
   }
