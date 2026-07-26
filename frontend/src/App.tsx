@@ -18,7 +18,6 @@ import CropRecommendation from './pages/dashboard/CropRecommendation'
 import DiseaseDetection from './pages/dashboard/DiseaseDetection'
 
 import AIAssistant from './pages/dashboard/AIAssistant'
-import { ThemeProvider } from './components/ThemeProvider'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import PublicRoute from './components/auth/PublicRoute'

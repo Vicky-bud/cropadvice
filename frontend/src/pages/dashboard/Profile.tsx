@@ -38,7 +38,7 @@ export default function Profile() {
     reset,
     formState: { errors },
   } = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as any,
     defaultValues: {
       location: "",
       farm_size_acres: "",

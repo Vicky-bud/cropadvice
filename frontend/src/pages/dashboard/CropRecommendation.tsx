@@ -37,7 +37,7 @@ export default function CropRecommendation() {
     handleSubmit,
     formState: { errors },
   } = useForm<CropFormValues>({
-    resolver: zodResolver(cropSchema),
+    resolver: zodResolver(cropSchema) as any,
     defaultValues: {
       N: 90, P: 42, K: 43, temperature: 20.8, humidity: 82.0, ph: 6.5, rainfall: 202.9
     }

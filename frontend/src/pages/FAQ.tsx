@@ -1,4 +1,4 @@
-import { ChevronDown, Mail, MessageCircle, HelpCircle } from "lucide-react"
+import { ChevronDown, Mail, HelpCircle } from "lucide-react"
 
 export default function FAQ() {
   const faqs = [
